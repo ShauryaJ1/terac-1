@@ -938,11 +938,18 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchProgress, setSearchProgress] = useState<{
-    currentRegion: string;
-    currentIndustry: string;
-    status: string;
-    progress: number;
-  } | null>(null);
+    gatherings: number;
+    people: number;
+    platforms: number;
+    exchanges: number;
+    licenses: number;
+  }>({
+    gatherings: 0,
+    people: 0,
+    platforms: 0,
+    exchanges: 0,
+    licenses: 0
+  });
   const [conversation, setConversation] = useState<Array<{ 
     role: 'user' | 'assistant', 
     content: string,
@@ -1051,6 +1058,15 @@ export default function Dashboard() {
     setSelectedSearches(searches);
     setShowSearchSelection(false);
     
+    // Reset search progress
+    setSearchProgress({
+      gatherings: 0,
+      people: 0,
+      platforms: 0,
+      exchanges: 0,
+      licenses: 0
+    });
+    
     // Create a summary of all selections
     const allRegions = [selectedRegions.baseRegion, ...selectedRegions.larger, ...selectedRegions.smaller];
     const allProfessions = [...selectedProfessions.professions, ...selectedProfessions.industries];
@@ -1092,6 +1108,7 @@ export default function Dashboard() {
 
       // Perform selected searches
       if (searches.includes('gatherings')) {
+        setSearchProgress(prev => ({ ...prev, gatherings: 0 }));
         // First, search for gatherings
         const gatheringResponse = await fetch('/api/gathering-search', {
           method: 'POST',
@@ -1112,6 +1129,7 @@ export default function Dashboard() {
         }
 
         const gatheringData = await gatheringResponse.json();
+        setSearchProgress(prev => ({ ...prev, gatherings: 1 }));
         
         // Add the gathering search results to the conversation
         if (gatheringData.gatherings && gatheringData.gatherings.length > 0) {
@@ -1129,6 +1147,7 @@ export default function Dashboard() {
       }
 
       if (searches.includes('people')) {
+        setSearchProgress(prev => ({ ...prev, people: 0 }));
         // Now, search for people
         const allPeople: any[] = [];
         
@@ -1140,6 +1159,9 @@ export default function Dashboard() {
         }]);
 
         // Search for people in each region and profession combination
+        const totalCombinations = allRegions.length * allProfessions.length;
+        let completedCombinations = 0;
+
         for (const region of allRegions) {
           for (const profession of allProfessions) {
             const personResponse = await fetch('/api/person-search', {
@@ -1160,6 +1182,12 @@ export default function Dashboard() {
               console.error(`Failed to search for people in ${region} for ${profession}`);
               continue;
             }
+
+            completedCombinations++;
+            setSearchProgress(prev => ({ 
+              ...prev, 
+              people: completedCombinations / totalCombinations
+            }));
 
             const personData = await personResponse.json();
             if (personData.people && personData.people.length > 0) {
@@ -1187,6 +1215,8 @@ export default function Dashboard() {
           }
         }
 
+        setSearchProgress(prev => ({ ...prev, people: 1 }));
+
         // Sort people by relevance score and remove duplicates
         const uniquePeople = Array.from(
           new Map(allPeople.map(p => [p.name, p])).values()
@@ -1210,6 +1240,7 @@ export default function Dashboard() {
       }
 
       if (searches.includes('platforms')) {
+        setSearchProgress(prev => ({ ...prev, platforms: 0 }));
         // Now, search for platforms
         const platformResponse = await fetch('/api/platform-search', {
           method: 'POST',
@@ -1230,6 +1261,7 @@ export default function Dashboard() {
         }
 
         const platformData = await platformResponse.json();
+        setSearchProgress(prev => ({ ...prev, platforms: 1 }));
         
         // Add the platform search results to the conversation
         if (platformData.platforms && platformData.platforms.length > 0) {
@@ -1247,6 +1279,7 @@ export default function Dashboard() {
       }
 
       if (searches.includes('exchanges')) {
+        setSearchProgress(prev => ({ ...prev, exchanges: 0 }));
         // Search for information exchanges
         const allExchanges: any[] = [];
         
@@ -1258,6 +1291,9 @@ export default function Dashboard() {
         }]);
 
         // Search for exchanges in each region
+        const totalRegions = allRegions.length;
+        let completedRegions = 0;
+
         for (const region of allRegions) {
           const exchangeResponse = await fetch('/api/info-exchange-search', {
             method: 'POST',
@@ -1277,6 +1313,12 @@ export default function Dashboard() {
             console.error(`Failed to search for exchanges in ${region}`);
             continue;
           }
+
+          completedRegions++;
+          setSearchProgress(prev => ({ 
+            ...prev, 
+            exchanges: completedRegions / totalRegions
+          }));
 
           const exchangeData = await exchangeResponse.json();
           if (exchangeData.exchanges && exchangeData.exchanges.length > 0) {
@@ -1303,6 +1345,8 @@ export default function Dashboard() {
           }
         }
 
+        setSearchProgress(prev => ({ ...prev, exchanges: 1 }));
+
         // Sort exchanges by relevance score and remove duplicates
         const uniqueExchanges = Array.from(
           new Map(allExchanges.map(e => [e.name, e])).values()
@@ -1326,6 +1370,7 @@ export default function Dashboard() {
       }
 
       if (searches.includes('licenses')) {
+        setSearchProgress(prev => ({ ...prev, licenses: 0 }));
         // Search for licenses
         const allLicenses: any[] = [];
         
@@ -1337,6 +1382,9 @@ export default function Dashboard() {
         }]);
 
         // Search for licenses in each region and profession combination
+        const totalCombinations = allRegions.length * allProfessions.length;
+        let completedCombinations = 0;
+
         for (const region of allRegions) {
           for (const profession of allProfessions) {
             const licenseResponse = await fetch('/api/license-search', {
@@ -1357,6 +1405,12 @@ export default function Dashboard() {
               console.error(`Failed to search for licenses in ${region} for ${profession}`);
               continue;
             }
+
+            completedCombinations++;
+            setSearchProgress(prev => ({ 
+              ...prev, 
+              licenses: completedCombinations / totalCombinations
+            }));
 
             const licenseData = await licenseResponse.json();
             if (licenseData.licenses && licenseData.licenses.length > 0) {
@@ -1383,6 +1437,8 @@ export default function Dashboard() {
             }
           }
         }
+
+        setSearchProgress(prev => ({ ...prev, licenses: 1 }));
 
         // Sort licenses by relevance score and remove duplicates
         const uniqueLicenses = Array.from(
@@ -1548,7 +1604,7 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 relative">
+    <main className="flex-1 flex flex-col h-screen bg-gray-50">
       {conversation.length === 0 ? (
         // Centered input when no messages
         <div className="min-h-screen flex items-center justify-center p-4">
@@ -1728,6 +1784,83 @@ export default function Dashboard() {
               isLoading={isSearching}
             />
           </div>
+        </div>
+      )}
+
+      {/* Add progress bars when searching */}
+      {isSearching && (
+        <div className="fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 w-64 z-50">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">Search Progress</h3>
+          {selectedSearches.includes('gatherings') && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Gatherings</span>
+                <span>{Math.round(searchProgress.gatherings * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${searchProgress.gatherings * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {selectedSearches.includes('people') && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>People</span>
+                <span>{Math.round(searchProgress.people * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${searchProgress.people * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {selectedSearches.includes('platforms') && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Platforms</span>
+                <span>{Math.round(searchProgress.platforms * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${searchProgress.platforms * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {selectedSearches.includes('exchanges') && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Exchanges</span>
+                <span>{Math.round(searchProgress.exchanges * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${searchProgress.exchanges * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {selectedSearches.includes('licenses') && (
+            <div className="mb-2">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Licenses</span>
+                <span>{Math.round(searchProgress.licenses * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${searchProgress.licenses * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </main>
