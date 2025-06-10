@@ -99,6 +99,7 @@ export async function POST(request: Request) {
     for (const region of validatedConfig.regions) {
       for (const industry of validatedConfig.industries) {
         // Update progress
+        console.log(region, industry)
         const progress = {
           currentRegion: region,
           currentIndustry: industry,

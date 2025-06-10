@@ -408,6 +408,52 @@ const GatheringCard = ({ gathering }: { gathering: any }) => {
   );
 };
 
+// Add PersonCard component before the Dashboard component
+const PersonCard = ({ person }: { person: any }) => {
+  const handleClick = () => {
+    if (person.source) {
+      window.open(person.source, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+        person.source ? 'hover:border-blue-500' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-gray-900">{person.name}</h3>
+        <span className="px-2 py-1 text-sm font-medium text-green-600 bg-green-100 rounded-full">
+          {person.title}
+        </span>
+      </div>
+      {person.company && (
+        <p className="mt-1 text-sm text-gray-600">{person.company}</p>
+      )}
+      <p className="mt-2 text-sm text-gray-600">{person.description}</p>
+      <div className="mt-3 space-y-1 text-sm text-gray-500">
+        <p className="flex items-center">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {person.location}
+        </p>
+        {person.source && (
+          <p className="flex items-center text-blue-600">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Source
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -422,7 +468,8 @@ export default function Dashboard() {
     content: string,
     regions?: { baseRegion: string, larger: string[], smaller: string[] },
     professions?: { professions: string[], industries: string[] },
-    gatherings?: any[]
+    gatherings?: any[],
+    people?: any[]
   }>>([]);
   const [selectedRegions, setSelectedRegions] = useState<{ 
     baseRegion: string,
@@ -602,6 +649,34 @@ export default function Dashboard() {
                   content: `I found ${data.gatherings.length} relevant gatherings:`,
                   gatherings: data.gatherings
                 }]);
+
+                // After finding gatherings, search for relevant people
+                for (const profession of selectedProfessions.professions) {
+                  const personResponse = await fetch('/api/person-search', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      query: originalQuery,
+                      location: selectedRegions.baseRegion,
+                      profession: profession,
+                      searchType: 'help',
+                      numResults: 3
+                    }),
+                  });
+
+                  if (personResponse.ok) {
+                    const personData = await personResponse.json();
+                    if (personData.people && personData.people.length > 0) {
+                      setConversation(prev => [...prev, {
+                        role: 'assistant',
+                        content: `Here are some ${profession}s who might be able to help:`,
+                        people: personData.people
+                      }]);
+                    }
+                  }
+                }
               } else {
                 setConversation(prev => [...prev, {
                   role: 'assistant',
@@ -813,6 +888,13 @@ export default function Dashboard() {
                         onProfessionRemove={handleProfessionRemove}
                         onAddProfession={handleAddProfession}
                       />
+                    )}
+                    {message.people && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.people.map((person: any, idx: number) => (
+                          <PersonCard key={idx} person={person} />
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
