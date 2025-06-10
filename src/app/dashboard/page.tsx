@@ -351,13 +351,78 @@ const ProfessionCards = ({
   );
 };
 
+// Add GatheringCard component before the Dashboard component
+const GatheringCard = ({ gathering }: { gathering: any }) => {
+  const handleClick = () => {
+    if (gathering.url) {
+      window.open(gathering.url, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+        gathering.url ? 'hover:border-blue-500' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-gray-900">{gathering.name}</h3>
+        <span className="px-2 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-full">
+          {gathering.type}
+        </span>
+      </div>
+      <p className="mt-2 text-sm text-gray-600">{gathering.description}</p>
+      <div className="mt-3 space-y-1 text-sm text-gray-500">
+        <p className="flex items-center">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {gathering.date || 'Date TBD'}
+        </p>
+        <p className="flex items-center">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {gathering.location}
+        </p>
+        {gathering.url && (
+          <p className="flex items-center text-blue-600">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            {gathering.url}
+          </p>
+        )}
+        {gathering.contact_information && (
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {gathering.contact_information}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchProgress, setSearchProgress] = useState<{
+    currentRegion: string;
+    currentIndustry: string;
+    status: string;
+    progress: number;
+  } | null>(null);
   const [conversation, setConversation] = useState<Array<{ 
     role: 'user' | 'assistant', 
     content: string,
     regions?: { baseRegion: string, larger: string[], smaller: string[] },
-    professions?: { professions: string[], industries: string[] }
+    professions?: { professions: string[], industries: string[] },
+    gatherings?: any[]
   }>>([]);
   const [selectedRegions, setSelectedRegions] = useState<{ 
     baseRegion: string,
@@ -446,8 +511,10 @@ export default function Dashboard() {
     });
   };
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     setIsFinalized(true);
+    setIsSearching(true);
+    
     // Create a summary of all selections
     const allRegions = [selectedRegions.baseRegion, ...selectedRegions.larger, ...selectedRegions.smaller];
     const allProfessions = [...selectedProfessions.professions, ...selectedProfessions.industries];
@@ -477,8 +544,86 @@ export default function Dashboard() {
     // Add a new message to the conversation with the finalized selections
     setConversation(prev => [...prev, {
       role: 'assistant',
-      content: summary + "\n\nWhat would you like to know about these areas and audiences?"
+      content: summary 
     }]);
+
+    try {
+      // Get the original query from stored choices
+      const savedChoices = localStorage.getItem('userChoices');
+      const choices = savedChoices ? JSON.parse(savedChoices) : {};
+      const originalQuery = choices.originalQuery || '';
+
+      // Call the gathering search endpoint
+      const response = await fetch('/api/gathering-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          regions: allRegions,
+          industries: selectedProfessions.industries,
+          professions: selectedProfessions.professions,
+          numQueries: 5,
+          baseQuery: originalQuery
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to search for gatherings');
+      }
+
+      // Create a reader for the response stream
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to create response reader');
+      }
+
+      // Process the stream
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Convert the chunk to text
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim());
+
+        // Process each line
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.progress) {
+              setSearchProgress(data.progress);
+            }
+            if (data.gatherings) {
+              // Add the search results to the conversation
+              if (data.gatherings.length > 0) {
+                setConversation(prev => [...prev, {
+                  role: 'assistant',
+                  content: `I found ${data.gatherings.length} relevant gatherings:`,
+                  gatherings: data.gatherings
+                }]);
+              } else {
+                setConversation(prev => [...prev, {
+                  role: 'assistant',
+                  content: "I couldn't find any relevant gatherings matching your criteria. Would you like to try different regions or industries?"
+                }]);
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing chunk:', e);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error searching for gatherings:', error);
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: "I encountered an error while searching for gatherings. Please try again."
+      }]);
+    } finally {
+      setIsSearching(false);
+      setSearchProgress(null);
+    }
   };
 
   const handleAddRegion = (type: RegionModalType) => {
@@ -632,7 +777,7 @@ export default function Dashboard() {
         // Messages with bottom input
         <div className="min-h-screen flex flex-col">
           <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-            <div className="max-w-2xl mx-auto space-y-4">
+            <div className="max-w-4xl mx-auto space-y-4">
               {conversation.map((message, index) => (
                 <div
                   key={index}
@@ -641,13 +786,20 @@ export default function Dashboard() {
                   }`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
+                    className={`max-w-[90%] rounded-lg p-4 ${
                       message.role === 'user'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white shadow-lg text-gray-900'
                     }`}
                   >
                     <p className="font-sans whitespace-pre-wrap">{message.content}</p>
+                    {message.gatherings && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.gatherings.map((gathering: any, idx: number) => (
+                          <GatheringCard key={idx} gathering={gathering} />
+                        ))}
+                      </div>
+                    )}
                     {message.regions && !isFinalized && (
                       <RegionCards 
                         regions={selectedRegions} 
@@ -732,6 +884,26 @@ export default function Dashboard() {
         onAdd={handleProfessionAdd}
         type={professionModalState.type}
       />
+
+      {/* Search Progress Indicator */}
+      {isSearching && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-4 max-w-md w-full">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {searchProgress?.status || 'Searching...'}
+            </span>
+            <span className="text-sm text-gray-500">
+              {searchProgress?.progress || 0}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${searchProgress?.progress || 0}%` }}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 } 

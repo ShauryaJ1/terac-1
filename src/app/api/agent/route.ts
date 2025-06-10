@@ -41,7 +41,7 @@ async function analyzeQuery(query: string, userProfile: string) {
   const { object: analysis } = await generateObject({
     model: openai('gpt-4o'),
     schema: queryAnalysisSchema,
-    prompt: `Analyze this query and determine if it contains location/region, profession/industry, and extract product/service information. THE PRODUCT/SERVUCE INFORMATION IS MANDATORY AND WILL BE PRESENT IN THE QUERY:
+    prompt: `Analyze this query and determine if it contains location/region, profession/industry, and extract product/service information. THE PRODUCT/SERVICE INFORMATION IS MANDATORY AND WILL BE PRESENT IN THE QUERY:
     "${query}"
     
     Return an object with:
@@ -49,7 +49,7 @@ async function analyzeQuery(query: string, userProfile: string) {
     - hasProfession: boolean indicating if a profession/industry that the target audience might be in is mentioned
     - hasProduct: boolean indicating if a product/service is mentioned
     - location: the extracted location if present
-    - profession: the extracted profession/industry if present, make sure it is one word, or some hyphenated words
+    - profession: the extracted profession/industry if present, make sure it is one word, or some hyphenated words. If no profession is found, leave it empty and put "Unknown" in the reasoning.
     - product: a product/service that the user mentions,
     - reasoning: brief explanation of your analysis`
   });
@@ -67,7 +67,12 @@ async function analyzeQuery(query: string, userProfile: string) {
       - hasProfession: boolean indicating if a profession/industry is mentioned
       - location: the extracted location if present
       - profession: the extracted profession/industry if present
-      - reasoning: brief explanation of your analysis`
+      - reasoning: brief explanation of your analysis
+      
+      IF THE USER PROFILE IS EMPTY INFER THE PROFESSION OF THE USER FROM THE QUERY
+      Query: "${query}"
+      
+      DO NOT LEAVE PROFESSION AS UNKNOWN`
     });
 
     // Fill in missing information from profile
@@ -80,8 +85,9 @@ async function analyzeQuery(query: string, userProfile: string) {
       analysis.profession = profileAnalysis.profession;
     }
     analysis.reasoning += " Trying profile data, here is what I found: " + profileAnalysis.reasoning;
+    
   }
-
+  console.log(analysis)
   return analysis;
 }
 
