@@ -624,6 +624,71 @@ const InfoExchangeCard = ({ exchange }: { exchange: any }) => {
   );
 };
 
+// Add LicenseCard component before the Dashboard component
+const LicenseCard = ({ license }: { license: any }) => {
+  const handleClick = () => {
+    if (license.databaseUrl) {
+      window.open(license.databaseUrl, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+        license.databaseUrl ? 'hover:border-blue-500' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-gray-900">{license.name}</h3>
+        <span className="px-2 py-1 text-sm font-medium text-orange-600 bg-orange-100 rounded-full">
+          {license.type}
+        </span>
+      </div>
+      <p className="mt-2 text-sm text-gray-600">{license.description}</p>
+      <div className="mt-3 space-y-1 text-sm text-gray-500">
+        <p className="flex items-center">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {license.jurisdiction}
+        </p>
+        {license.requirements && license.requirements.length > 0 && (
+          <div className="mt-2">
+            <p className="font-medium text-gray-700 mb-1">Requirements:</p>
+            <ul className="list-disc list-inside space-y-1">
+              {license.requirements.map((req: string, idx: number) => (
+                <li key={idx} className="text-gray-600">{req}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {license.databaseUrl && (
+          <p className="flex items-center text-blue-600 group mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span className="truncate hover:text-blue-700" title={license.databaseUrl}>
+              Search Database
+            </span>
+          </p>
+        )}
+        {license.source && (
+          <p className="flex items-center text-gray-500 group mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="truncate" title={license.source}>
+              Source
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Update ResultTabs component
 const ResultTabs = ({ 
   activeTab, 
@@ -631,14 +696,16 @@ const ResultTabs = ({
   hasGatherings,
   hasPeople,
   hasPlatforms,
-  hasExchanges
+  hasExchanges,
+  hasLicenses
 }: { 
-  activeTab: 'gatherings' | 'people' | 'platforms' | 'exchanges';
-  onTabChange: (tab: 'gatherings' | 'people' | 'platforms' | 'exchanges') => void;
+  activeTab: 'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses';
+  onTabChange: (tab: 'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses') => void;
   hasGatherings: boolean;
   hasPeople: boolean;
   hasPlatforms: boolean;
   hasExchanges: boolean;
+  hasLicenses: boolean;
 }) => {
   return (
     <div className="flex space-x-2 mb-4">
@@ -690,6 +757,179 @@ const ResultTabs = ({
           Information Exchanges
         </button>
       )}
+      {hasLicenses && (
+        <button
+          onClick={() => onTabChange('licenses')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'licenses'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Licenses & Registrations
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Add SearchSelection component before the Dashboard component
+const SearchSelection = ({
+  onFinalize,
+  isLoading
+}: {
+  onFinalize: (selectedSearches: string[]) => void;
+  isLoading: boolean;
+}) => {
+  const [selectedSearches, setSelectedSearches] = useState<string[]>([
+    'gatherings',
+    'people',
+    'platforms',
+    'exchanges',
+    'licenses'
+  ]);
+
+  const searchOptions = [
+    {
+      id: 'gatherings',
+      name: 'Gatherings & Events',
+      description: 'Find relevant gatherings, conferences, and networking events',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
+      id: 'people',
+      name: 'People',
+      description: 'Find relevant professionals and potential contacts',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      )
+    },
+    {
+      id: 'platforms',
+      name: 'Platforms',
+      description: 'Find relevant platforms and tools',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
+      id: 'exchanges',
+      name: 'Information Exchanges',
+      description: 'Find relevant information exchanges and communities',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      )
+    },
+    {
+      id: 'licenses',
+      name: 'Licenses & Registrations',
+      description: 'Find relevant professional licenses and registrations',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      )
+    }
+  ];
+
+  const toggleSearch = (searchId: string) => {
+    setSelectedSearches(prev => {
+      if (prev.includes(searchId)) {
+        return prev.filter(id => id !== searchId);
+      } else {
+        return [...prev, searchId];
+      }
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">
+        Select which searches to perform
+      </h3>
+      <div className="space-y-3">
+        {searchOptions.map(option => (
+          <label
+            key={option.id}
+            className={`relative flex items-start p-4 rounded-lg border cursor-pointer transition-colors ${
+              selectedSearches.includes(option.id)
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className={`p-2 rounded-lg ${
+                    selectedSearches.includes(option.id)
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {option.icon}
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <p className={`text-sm font-medium ${
+                    selectedSearches.includes(option.id)
+                      ? 'text-blue-900'
+                      : 'text-gray-900'
+                  }`}>
+                    {option.name}
+                  </p>
+                  <p className={`text-sm ${
+                    selectedSearches.includes(option.id)
+                      ? 'text-blue-700'
+                      : 'text-gray-500'
+                  }`}>
+                    {option.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="ml-3 flex items-center h-5">
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                checked={selectedSearches.includes(option.id)}
+                onChange={() => toggleSearch(option.id)}
+                disabled={isLoading}
+              />
+            </div>
+          </label>
+        ))}
+      </div>
+      <div className="mt-6 flex justify-end">
+        <button
+          onClick={() => onFinalize(selectedSearches)}
+          disabled={isLoading || selectedSearches.length === 0}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>Start Search</span>
+          <svg 
+            className="ml-2 w-4 h-4" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M5 13l4 4L19 7" 
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };
@@ -711,7 +951,8 @@ export default function Dashboard() {
     gatherings?: any[],
     people?: any[],
     platforms?: any[],
-    exchanges?: any[]
+    exchanges?: any[],
+    licenses?: any[]
   }>>([]);
   const [selectedRegions, setSelectedRegions] = useState<{ 
     baseRegion: string,
@@ -749,7 +990,9 @@ export default function Dashboard() {
 
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [activeResultTab, setActiveResultTab] = useState<'gatherings' | 'people' | 'platforms' | 'exchanges'>('gatherings');
+  const [activeResultTab, setActiveResultTab] = useState<'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses'>('gatherings');
+  const [showSearchSelection, setShowSearchSelection] = useState(false);
+  const [selectedSearches, setSelectedSearches] = useState<string[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -775,7 +1018,8 @@ export default function Dashboard() {
     professions?: { professions: string[], industries: string[] },
     product?: string,
     finalized?: boolean,
-    originalQuery?: string
+    originalQuery?: string,
+    selectedSearches?: string[]
   }) => {
     const existingData = localStorage.getItem('userChoices');
     const currentChoices = existingData ? JSON.parse(existingData) : {};
@@ -801,9 +1045,11 @@ export default function Dashboard() {
     });
   };
 
-  const handleFinalize = async () => {
+  const handleFinalize = async (searches: string[]) => {
     setIsFinalized(true);
     setIsSearching(true);
+    setSelectedSearches(searches);
+    setShowSearchSelection(false);
     
     // Create a summary of all selections
     const allRegions = [selectedRegions.baseRegion, ...selectedRegions.larger, ...selectedRegions.smaller];
@@ -828,7 +1074,8 @@ export default function Dashboard() {
     storeUserChoices({
       regions: selectedRegions,
       professions: selectedProfessions,
-      finalized: true
+      finalized: true,
+      selectedSearches: searches
     });
     
     // Add a new message to the conversation with the finalized selections
@@ -843,55 +1090,176 @@ export default function Dashboard() {
       const choices = savedChoices ? JSON.parse(savedChoices) : {};
       const originalQuery = choices.originalQuery || '';
 
-      // First, search for gatherings
-      const gatheringResponse = await fetch('/api/gathering-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          regions: allRegions,
-          industries: selectedProfessions.industries,
-          professions: selectedProfessions.professions,
-          numQueries: 5,
-          baseQuery: originalQuery
-        }),
-      });
+      // Perform selected searches
+      if (searches.includes('gatherings')) {
+        // First, search for gatherings
+        const gatheringResponse = await fetch('/api/gathering-search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            regions: allRegions,
+            industries: selectedProfessions.industries,
+            professions: selectedProfessions.professions,
+            numQueries: 5,
+            baseQuery: originalQuery
+          }),
+        });
 
-      if (!gatheringResponse.ok) {
-        throw new Error('Failed to search for gatherings');
+        if (!gatheringResponse.ok) {
+          throw new Error('Failed to search for gatherings');
+        }
+
+        const gatheringData = await gatheringResponse.json();
+        
+        // Add the gathering search results to the conversation
+        if (gatheringData.gatherings && gatheringData.gatherings.length > 0) {
+          setConversation(prev => [...prev, {
+            role: 'assistant',
+            content: `I found ${gatheringData.gatherings.length} relevant gatherings:`,
+            gatherings: gatheringData.gatherings
+          }]);
+        } else {
+          setConversation(prev => [...prev, {
+            role: 'assistant',
+            content: "I couldn't find any relevant gatherings matching your criteria."
+          }]);
+        }
       }
 
-      const gatheringData = await gatheringResponse.json();
-      
-      // Add the gathering search results to the conversation
-      if (gatheringData.gatherings && gatheringData.gatherings.length > 0) {
+      if (searches.includes('people')) {
+        // Now, search for people
+        const allPeople: any[] = [];
+        
+        // Add initial message for people search
         setConversation(prev => [...prev, {
           role: 'assistant',
-          content: `I found ${gatheringData.gatherings.length} relevant gatherings:`,
-          gatherings: gatheringData.gatherings
+          content: "Searching for relevant people...",
+          people: Array(3).fill(null).map(() => ({ isLoading: true }))
         }]);
-      } else {
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: "I couldn't find any relevant gatherings matching your criteria."
-        }]);
+
+        // Search for people in each region and profession combination
+        for (const region of allRegions) {
+          for (const profession of allProfessions) {
+            const personResponse = await fetch('/api/person-search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: originalQuery,
+                location: region,
+                profession: profession,
+                searchType: 'marketing',
+                numResults: 5
+              }),
+            });
+
+            if (!personResponse.ok) {
+              console.error(`Failed to search for people in ${region} for ${profession}`);
+              continue;
+            }
+
+            const personData = await personResponse.json();
+            if (personData.people && personData.people.length > 0) {
+              allPeople.push(...personData.people);
+              
+              // Update the conversation with new people as they come in
+              setConversation(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage.role === 'assistant' && lastMessage.people) {
+                  return [
+                    ...prev.slice(0, -1),
+                    {
+                      ...lastMessage,
+                      content: `Found ${allPeople.length} relevant people so far...`,
+                      people: [
+                        ...allPeople,
+                        ...Array(Math.max(0, 3 - allPeople.length)).fill(null).map(() => ({ isLoading: true }))
+                      ]
+                    }
+                  ];
+                }
+                return prev;
+              });
+            }
+          }
+        }
+
+        // Sort people by relevance score and remove duplicates
+        const uniquePeople = Array.from(
+          new Map(allPeople.map(p => [p.name, p])).values()
+        ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+        // Update the final message with all unique people
+        setConversation(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === 'assistant' && lastMessage.people) {
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                content: `I found ${uniquePeople.length} relevant people who might be interested:`,
+                people: uniquePeople
+              }
+            ];
+          }
+          return prev;
+        });
       }
 
-      // Now, search for people
-      const allPeople: any[] = [];
-      
-      // Add initial message for people search
-      setConversation(prev => [...prev, {
-        role: 'assistant',
-        content: "Searching for relevant people...",
-        people: Array(3).fill(null).map(() => ({ isLoading: true }))
-      }]);
+      if (searches.includes('platforms')) {
+        // Now, search for platforms
+        const platformResponse = await fetch('/api/platform-search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: originalQuery,
+            location: selectedRegions.baseRegion,
+            profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
+            searchType: 'marketing',
+            numResults: 5
+          }),
+        });
 
-      // Search for people in each region and profession combination
-      for (const region of allRegions) {
-        for (const profession of allProfessions) {
-          const personResponse = await fetch('/api/person-search', {
+        if (!platformResponse.ok) {
+          throw new Error('Failed to search for platforms');
+        }
+
+        const platformData = await platformResponse.json();
+        
+        // Add the platform search results to the conversation
+        if (platformData.platforms && platformData.platforms.length > 0) {
+          setConversation(prev => [...prev, {
+            role: 'assistant',
+            content: `I found ${platformData.platforms.length} relevant platforms that might be useful:`,
+            platforms: platformData.platforms
+          }]);
+        } else {
+          setConversation(prev => [...prev, {
+            role: 'assistant',
+            content: "I couldn't find any relevant platforms matching your criteria."
+          }]);
+        }
+      }
+
+      if (searches.includes('exchanges')) {
+        // Search for information exchanges
+        const allExchanges: any[] = [];
+        
+        // Add initial message for exchange search
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: "Searching for relevant information exchanges...",
+          exchanges: Array(3).fill(null).map(() => ({ isLoading: true }))
+        }]);
+
+        // Search for exchanges in each region
+        for (const region of allRegions) {
+          const exchangeResponse = await fetch('/api/info-exchange-search', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -899,33 +1267,33 @@ export default function Dashboard() {
             body: JSON.stringify({
               query: originalQuery,
               location: region,
-              profession: profession,
+              profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
               searchType: 'marketing',
               numResults: 5
             }),
           });
 
-          if (!personResponse.ok) {
-            console.error(`Failed to search for people in ${region} for ${profession}`);
+          if (!exchangeResponse.ok) {
+            console.error(`Failed to search for exchanges in ${region}`);
             continue;
           }
 
-          const personData = await personResponse.json();
-          if (personData.people && personData.people.length > 0) {
-            allPeople.push(...personData.people);
+          const exchangeData = await exchangeResponse.json();
+          if (exchangeData.exchanges && exchangeData.exchanges.length > 0) {
+            allExchanges.push(...exchangeData.exchanges);
             
-            // Update the conversation with new people as they come in
+            // Update the conversation with new exchanges as they come in
             setConversation(prev => {
               const lastMessage = prev[prev.length - 1];
-              if (lastMessage.role === 'assistant' && lastMessage.people) {
+              if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
                 return [
                   ...prev.slice(0, -1),
                   {
                     ...lastMessage,
-                    content: `Found ${allPeople.length} relevant people so far...`,
-                    people: [
-                      ...allPeople,
-                      ...Array(Math.max(0, 3 - allPeople.length)).fill(null).map(() => ({ isLoading: true }))
+                    content: `Found ${allExchanges.length} relevant information exchanges so far...`,
+                    exchanges: [
+                      ...allExchanges,
+                      ...Array(Math.max(0, 3 - allExchanges.length)).fill(null).map(() => ({ isLoading: true }))
                     ]
                   }
                 ];
@@ -934,140 +1302,109 @@ export default function Dashboard() {
             });
           }
         }
-      }
 
-      // Sort people by relevance score and remove duplicates
-      const uniquePeople = Array.from(
-        new Map(allPeople.map(p => [p.name, p])).values()
-      ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+        // Sort exchanges by relevance score and remove duplicates
+        const uniqueExchanges = Array.from(
+          new Map(allExchanges.map(e => [e.name, e])).values()
+        ).sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-      // Update the final message with all unique people
-      setConversation(prev => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage.role === 'assistant' && lastMessage.people) {
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...lastMessage,
-              content: `I found ${uniquePeople.length} relevant people who might be interested:`,
-              people: uniquePeople
-            }
-          ];
-        }
-        return prev;
-      });
-
-      // Now, search for platforms
-      const platformResponse = await fetch('/api/platform-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: originalQuery,
-          location: selectedRegions.baseRegion,
-          profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
-          searchType: 'marketing',
-          numResults: 5
-        }),
-      });
-
-      if (!platformResponse.ok) {
-        throw new Error('Failed to search for platforms');
-      }
-
-      const platformData = await platformResponse.json();
-      
-      // Add the platform search results to the conversation
-      if (platformData.platforms && platformData.platforms.length > 0) {
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: `I found ${platformData.platforms.length} relevant platforms that might be useful:`,
-          platforms: platformData.platforms
-        }]);
-      } else {
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: "I couldn't find any relevant platforms matching your criteria."
-        }]);
-      }
-
-      // Finally, search for information exchanges
-      const allExchanges: any[] = [];
-      
-      // Add initial message for exchange search
-      setConversation(prev => [...prev, {
-        role: 'assistant',
-        content: "Searching for relevant information exchanges...",
-        exchanges: Array(3).fill(null).map(() => ({ isLoading: true }))
-      }]);
-
-      // Search for exchanges in each region
-      for (const region of allRegions) {
-        const exchangeResponse = await fetch('/api/info-exchange-search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: originalQuery,
-            location: region,
-            profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
-            searchType: 'marketing',
-            numResults: 5
-          }),
+        // Update the final message with all unique exchanges
+        setConversation(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                content: `I found ${uniqueExchanges.length} relevant information exchanges that might be useful:`,
+                exchanges: uniqueExchanges
+              }
+            ];
+          }
+          return prev;
         });
-
-        if (!exchangeResponse.ok) {
-          console.error(`Failed to search for exchanges in ${region}`);
-          continue;
-        }
-
-        const exchangeData = await exchangeResponse.json();
-        if (exchangeData.exchanges && exchangeData.exchanges.length > 0) {
-          allExchanges.push(...exchangeData.exchanges);
-          
-          // Update the conversation with new exchanges as they come in
-          setConversation(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
-              return [
-                ...prev.slice(0, -1),
-                {
-                  ...lastMessage,
-                  content: `Found ${allExchanges.length} relevant information exchanges so far...`,
-                  exchanges: [
-                    ...allExchanges,
-                    ...Array(Math.max(0, 3 - allExchanges.length)).fill(null).map(() => ({ isLoading: true }))
-                  ]
-                }
-              ];
-            }
-            return prev;
-          });
-        }
       }
 
-      // Sort exchanges by relevance score and remove duplicates
-      const uniqueExchanges = Array.from(
-        new Map(allExchanges.map(e => [e.name, e])).values()
-      ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+      if (searches.includes('licenses')) {
+        // Search for licenses
+        const allLicenses: any[] = [];
+        
+        // Add initial message for license search
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: "Searching for relevant licenses and registrations...",
+          licenses: Array(3).fill(null).map(() => ({ isLoading: true }))
+        }]);
 
-      // Update the final message with all unique exchanges
-      setConversation(prev => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...lastMessage,
-              content: `I found ${uniqueExchanges.length} relevant information exchanges that might be useful:`,
-              exchanges: uniqueExchanges
+        // Search for licenses in each region and profession combination
+        for (const region of allRegions) {
+          for (const profession of allProfessions) {
+            const licenseResponse = await fetch('/api/license-search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: originalQuery,
+                location: region,
+                profession: profession,
+                searchType: 'marketing',
+                numResults: 5
+              }),
+            });
+
+            if (!licenseResponse.ok) {
+              console.error(`Failed to search for licenses in ${region} for ${profession}`);
+              continue;
             }
-          ];
+
+            const licenseData = await licenseResponse.json();
+            if (licenseData.licenses && licenseData.licenses.length > 0) {
+              allLicenses.push(...licenseData.licenses);
+              
+              // Update the conversation with new licenses as they come in
+              setConversation(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage.role === 'assistant' && lastMessage.licenses) {
+                  return [
+                    ...prev.slice(0, -1),
+                    {
+                      ...lastMessage,
+                      content: `Found ${allLicenses.length} relevant licenses and registrations so far...`,
+                      licenses: [
+                        ...allLicenses,
+                        ...Array(Math.max(0, 3 - allLicenses.length)).fill(null).map(() => ({ isLoading: true }))
+                      ]
+                    }
+                  ];
+                }
+                return prev;
+              });
+            }
+          }
         }
-        return prev;
-      });
+
+        // Sort licenses by relevance score and remove duplicates
+        const uniqueLicenses = Array.from(
+          new Map(allLicenses.map(l => [l.name, l])).values()
+        ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+        // Update the final message with all unique licenses
+        setConversation(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === 'assistant' && lastMessage.licenses) {
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                content: `I found ${uniqueLicenses.length} relevant licenses and registrations that might be useful:`,
+                licenses: uniqueLicenses
+              }
+            ];
+          }
+          return prev;
+        });
+      }
 
     } catch (error) {
       console.error('Error in search:', error);
@@ -1244,7 +1581,7 @@ export default function Dashboard() {
                     <p className="font-sans whitespace-pre-wrap">{message.content}</p>
                     
                     {/* Show tabs if any results are available */}
-                    {(message.gatherings || message.people || message.platforms || message.exchanges) && (
+                    {(message.gatherings || message.people || message.platforms || message.exchanges || message.licenses) && (
                       <ResultTabs
                         activeTab={activeResultTab}
                         onTabChange={setActiveResultTab}
@@ -1252,6 +1589,7 @@ export default function Dashboard() {
                         hasPeople={!!message.people}
                         hasPlatforms={!!message.platforms}
                         hasExchanges={!!message.exchanges}
+                        hasLicenses={!!message.licenses}
                       />
                     )}
 
@@ -1284,6 +1622,14 @@ export default function Dashboard() {
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {message.exchanges.map((exchange: any, idx: number) => (
                           <InfoExchangeCard key={idx} exchange={exchange} />
+                        ))}
+                      </div>
+                    )}
+
+                    {message.licenses && activeResultTab === 'licenses' && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.licenses.map((license: any, idx: number) => (
+                          <LicenseCard key={idx} license={license} />
                         ))}
                       </div>
                     )}
@@ -1326,7 +1672,7 @@ export default function Dashboard() {
             <div className="border-t border-gray-200 bg-white p-4">
               <div className="max-w-4xl mx-auto flex justify-end">
                 <button
-                  onClick={handleFinalize}
+                  onClick={() => setShowSearchSelection(true)}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                 >
                   <span>Finalize Selection</span>
@@ -1372,6 +1718,18 @@ export default function Dashboard() {
         onAdd={handleAddProfession}
         type={professionModalState.type}
       />
+
+      {/* Search Selection Modal */}
+      {showSearchSelection && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-full max-w-2xl mx-4">
+            <SearchSelection
+              onFinalize={handleFinalize}
+              isLoading={isSearching}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 } 
