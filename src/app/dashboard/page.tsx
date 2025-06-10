@@ -472,6 +472,228 @@ const PersonCard = ({ person, isLoading }: { person: any, isLoading?: boolean })
   );
 };
 
+// Add PlatformCard component before the Dashboard component
+const PlatformCard = ({ platform }: { platform: any }) => {
+  const handleClick = () => {
+    if (platform.source) {
+      window.open(platform.source, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+        platform.source ? 'hover:border-blue-500' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-gray-900">{platform.name}</h3>
+        <span className="px-2 py-1 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-full">
+          {platform.type}
+        </span>
+      </div>
+      <p className="mt-2 text-sm text-gray-600">{platform.description}</p>
+      <div className="mt-3 space-y-1 text-sm text-gray-500">
+        {platform.location && (
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {platform.location}
+          </p>
+        )}
+        {platform.features && platform.features.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {platform.features.map((feature: string, idx: number) => (
+              <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                {feature}
+              </span>
+            ))}
+          </div>
+        )}
+        {platform.pricing && (
+          <p className="flex items-center mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {platform.pricing}
+          </p>
+        )}
+        {platform.userBase && (
+          <p className="flex items-center mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            {platform.userBase}
+          </p>
+        )}
+        {platform.source && (
+          <p className="flex items-center text-blue-600 group mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span className="truncate hover:text-blue-700" title={platform.source}>
+              {platform.source}
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Add InfoExchangeCard component before the Dashboard component
+const InfoExchangeCard = ({ exchange }: { exchange: any }) => {
+  const handleClick = () => {
+    if (exchange.source) {
+      window.open(exchange.source, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+        exchange.source ? 'hover:border-blue-500' : ''
+      }`}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-gray-900">{exchange.name}</h3>
+        <span className="px-2 py-1 text-sm font-medium text-yellow-600 bg-yellow-100 rounded-full">
+          {exchange.type}
+        </span>
+      </div>
+      <p className="mt-2 text-sm text-gray-600">{exchange.description}</p>
+      <div className="mt-3 space-y-1 text-sm text-gray-500">
+        {exchange.location && (
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {exchange.location}
+          </p>
+        )}
+        {exchange.audience && (
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            {exchange.audience}
+          </p>
+        )}
+        {exchange.frequency && (
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {exchange.frequency}
+          </p>
+        )}
+        {exchange.features && exchange.features.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {exchange.features.map((feature: string, idx: number) => (
+              <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                {feature}
+              </span>
+            ))}
+          </div>
+        )}
+        {exchange.contact && (
+          <p className="flex items-center mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {exchange.contact}
+          </p>
+        )}
+        {exchange.source && (
+          <p className="flex items-center text-blue-600 group mt-2">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span className="truncate hover:text-blue-700" title={exchange.source}>
+              {exchange.source}
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Update ResultTabs component
+const ResultTabs = ({ 
+  activeTab, 
+  onTabChange,
+  hasGatherings,
+  hasPeople,
+  hasPlatforms,
+  hasExchanges
+}: { 
+  activeTab: 'gatherings' | 'people' | 'platforms' | 'exchanges';
+  onTabChange: (tab: 'gatherings' | 'people' | 'platforms' | 'exchanges') => void;
+  hasGatherings: boolean;
+  hasPeople: boolean;
+  hasPlatforms: boolean;
+  hasExchanges: boolean;
+}) => {
+  return (
+    <div className="flex space-x-2 mb-4">
+      {hasGatherings && (
+        <button
+          onClick={() => onTabChange('gatherings')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'gatherings'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Gatherings
+        </button>
+      )}
+      {hasPeople && (
+        <button
+          onClick={() => onTabChange('people')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'people'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          People
+        </button>
+      )}
+      {hasPlatforms && (
+        <button
+          onClick={() => onTabChange('platforms')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'platforms'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Platforms
+        </button>
+      )}
+      {hasExchanges && (
+        <button
+          onClick={() => onTabChange('exchanges')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'exchanges'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Information Exchanges
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -487,7 +709,9 @@ export default function Dashboard() {
     regions?: { baseRegion: string, larger: string[], smaller: string[] },
     professions?: { professions: string[], industries: string[] },
     gatherings?: any[],
-    people?: any[]
+    people?: any[],
+    platforms?: any[],
+    exchanges?: any[]
   }>>([]);
   const [selectedRegions, setSelectedRegions] = useState<{ 
     baseRegion: string,
@@ -525,6 +749,7 @@ export default function Dashboard() {
 
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [activeResultTab, setActiveResultTab] = useState<'gatherings' | 'people' | 'platforms' | 'exchanges'>('gatherings');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -732,6 +957,118 @@ export default function Dashboard() {
         return prev;
       });
 
+      // Now, search for platforms
+      const platformResponse = await fetch('/api/platform-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: originalQuery,
+          location: selectedRegions.baseRegion,
+          profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
+          searchType: 'marketing',
+          numResults: 5
+        }),
+      });
+
+      if (!platformResponse.ok) {
+        throw new Error('Failed to search for platforms');
+      }
+
+      const platformData = await platformResponse.json();
+      
+      // Add the platform search results to the conversation
+      if (platformData.platforms && platformData.platforms.length > 0) {
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: `I found ${platformData.platforms.length} relevant platforms that might be useful:`,
+          platforms: platformData.platforms
+        }]);
+      } else {
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: "I couldn't find any relevant platforms matching your criteria."
+        }]);
+      }
+
+      // Finally, search for information exchanges
+      const allExchanges: any[] = [];
+      
+      // Add initial message for exchange search
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: "Searching for relevant information exchanges...",
+        exchanges: Array(3).fill(null).map(() => ({ isLoading: true }))
+      }]);
+
+      // Search for exchanges in each region
+      for (const region of allRegions) {
+        const exchangeResponse = await fetch('/api/info-exchange-search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: originalQuery,
+            location: region,
+            profession: selectedProfessions.professions[0] || selectedProfessions.industries[0],
+            searchType: 'marketing',
+            numResults: 5
+          }),
+        });
+
+        if (!exchangeResponse.ok) {
+          console.error(`Failed to search for exchanges in ${region}`);
+          continue;
+        }
+
+        const exchangeData = await exchangeResponse.json();
+        if (exchangeData.exchanges && exchangeData.exchanges.length > 0) {
+          allExchanges.push(...exchangeData.exchanges);
+          
+          // Update the conversation with new exchanges as they come in
+          setConversation(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
+              return [
+                ...prev.slice(0, -1),
+                {
+                  ...lastMessage,
+                  content: `Found ${allExchanges.length} relevant information exchanges so far...`,
+                  exchanges: [
+                    ...allExchanges,
+                    ...Array(Math.max(0, 3 - allExchanges.length)).fill(null).map(() => ({ isLoading: true }))
+                  ]
+                }
+              ];
+            }
+            return prev;
+          });
+        }
+      }
+
+      // Sort exchanges by relevance score and remove duplicates
+      const uniqueExchanges = Array.from(
+        new Map(allExchanges.map(e => [e.name, e])).values()
+      ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      // Update the final message with all unique exchanges
+      setConversation(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMessage,
+              content: `I found ${uniqueExchanges.length} relevant information exchanges that might be useful:`,
+              exchanges: uniqueExchanges
+            }
+          ];
+        }
+        return prev;
+      });
+
     } catch (error) {
       console.error('Error in search:', error);
       setConversation(prev => [...prev, {
@@ -771,12 +1108,7 @@ export default function Dashboard() {
     });
   };
 
-  const handleAddProfession = (type: ProfessionModalType) => {
-    if (isFinalized) return;
-    setProfessionModalState({ isOpen: true, type });
-  };
-
-  const handleProfessionAdd = (profession: string) => {
+  const handleAddProfession = (profession: string) => {
     setSelectedProfessions(prev => {
       const newProfessions = {
         ...prev,
@@ -910,20 +1242,52 @@ export default function Dashboard() {
                     }`}
                   >
                     <p className="font-sans whitespace-pre-wrap">{message.content}</p>
-                    {message.gatherings && (
+                    
+                    {/* Show tabs if any results are available */}
+                    {(message.gatherings || message.people || message.platforms || message.exchanges) && (
+                      <ResultTabs
+                        activeTab={activeResultTab}
+                        onTabChange={setActiveResultTab}
+                        hasGatherings={!!message.gatherings}
+                        hasPeople={!!message.people}
+                        hasPlatforms={!!message.platforms}
+                        hasExchanges={!!message.exchanges}
+                      />
+                    )}
+
+                    {/* Show content based on active tab */}
+                    {message.gatherings && activeResultTab === 'gatherings' && (
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {message.gatherings.map((gathering: any, idx: number) => (
                           <GatheringCard key={idx} gathering={gathering} />
                         ))}
                       </div>
                     )}
-                    {message.people && (
+                    
+                    {message.people && activeResultTab === 'people' && (
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {message.people.map((person: any, idx: number) => (
                           <PersonCard key={idx} person={person} isLoading={person.isLoading} />
                         ))}
                       </div>
                     )}
+                    
+                    {message.platforms && activeResultTab === 'platforms' && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.platforms.map((platform: any, idx: number) => (
+                          <PlatformCard key={idx} platform={platform} />
+                        ))}
+                      </div>
+                    )}
+
+                    {message.exchanges && activeResultTab === 'exchanges' && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.exchanges.map((exchange: any, idx: number) => (
+                          <InfoExchangeCard key={idx} exchange={exchange} />
+                        ))}
+                      </div>
+                    )}
+
                     {message.regions && !isFinalized && (
                       <RegionCards 
                         regions={selectedRegions} 
@@ -1005,7 +1369,7 @@ export default function Dashboard() {
       <AddProfessionModal
         isOpen={professionModalState.isOpen}
         onClose={() => setProfessionModalState({ isOpen: false, type: 'professions' })}
-        onAdd={handleProfessionAdd}
+        onAdd={handleAddProfession}
         type={professionModalState.type}
       />
     </main>
