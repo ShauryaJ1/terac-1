@@ -375,29 +375,31 @@ const GatheringCard = ({ gathering }: { gathering: any }) => {
       <p className="mt-2 text-sm text-gray-600">{gathering.description}</p>
       <div className="mt-3 space-y-1 text-sm text-gray-500">
         <p className="flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {gathering.date || 'Date TBD'}
         </p>
         <p className="flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           {gathering.location}
         </p>
         {gathering.url && (
-          <p className="flex items-center text-blue-600">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <p className="flex items-center text-blue-600 group">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            {gathering.url}
+            <span className="truncate hover:text-blue-700" title={gathering.url}>
+              {gathering.url}
+            </span>
           </p>
         )}
         {gathering.contact_information && (
           <p className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             {gathering.contact_information}
@@ -408,45 +410,61 @@ const GatheringCard = ({ gathering }: { gathering: any }) => {
   );
 };
 
-// Add PersonCard component before the Dashboard component
-const PersonCard = ({ person }: { person: any }) => {
-  const handleClick = () => {
-    if (person.source) {
-      window.open(person.source, '_blank');
-    }
-  };
+// Update PersonCard component to support loading state
+const PersonCard = ({ person, isLoading }: { person: any, isLoading?: boolean }) => {
+  if (isLoading) {
+    return (
+      <div className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm animate-pulse">
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+        </div>
+        <div className="mt-2 space-y-2">
+          <div className="h-3 bg-gray-200 rounded w-full"></div>
+          <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+        </div>
+        <div className="mt-3 space-y-2">
+          <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div 
-      onClick={handleClick}
-      className={`p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
-        person.source ? 'hover:border-blue-500' : ''
-      }`}
-    >
+    <div className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-gray-900">{person.name}</h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{person.name}</h3>
+          <p className="text-sm text-gray-600">{person.title}</p>
+          {person.company && (
+            <p className="text-sm text-gray-500">{person.company}</p>
+          )}
+        </div>
         <span className="px-2 py-1 text-sm font-medium text-green-600 bg-green-100 rounded-full">
-          {person.title}
+          {Math.round(person.relevanceScore * 100)}% Match
         </span>
       </div>
-      {person.company && (
-        <p className="mt-1 text-sm text-gray-600">{person.company}</p>
-      )}
       <p className="mt-2 text-sm text-gray-600">{person.description}</p>
       <div className="mt-3 space-y-1 text-sm text-gray-500">
         <p className="flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           {person.location}
         </p>
         {person.source && (
-          <p className="flex items-center text-blue-600">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <p className="flex items-center text-blue-600 group">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            Source
+            <span className="truncate hover:text-blue-700" title={person.source}>
+              {person.source}
+            </span>
           </p>
         )}
       </div>
@@ -600,8 +618,8 @@ export default function Dashboard() {
       const choices = savedChoices ? JSON.parse(savedChoices) : {};
       const originalQuery = choices.originalQuery || '';
 
-      // Call the gathering search endpoint
-      const response = await fetch('/api/gathering-search', {
+      // First, search for gatherings
+      const gatheringResponse = await fetch('/api/gathering-search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -615,89 +633,113 @@ export default function Dashboard() {
         }),
       });
 
-      if (!response.ok) {
+      if (!gatheringResponse.ok) {
         throw new Error('Failed to search for gatherings');
       }
 
-      // Create a reader for the response stream
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Failed to create response reader');
+      const gatheringData = await gatheringResponse.json();
+      
+      // Add the gathering search results to the conversation
+      if (gatheringData.gatherings && gatheringData.gatherings.length > 0) {
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: `I found ${gatheringData.gatherings.length} relevant gatherings:`,
+          gatherings: gatheringData.gatherings
+        }]);
+      } else {
+        setConversation(prev => [...prev, {
+          role: 'assistant',
+          content: "I couldn't find any relevant gatherings matching your criteria."
+        }]);
       }
 
-      // Process the stream
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Now, search for people
+      const allPeople: any[] = [];
+      
+      // Add initial message for people search
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: "Searching for relevant people...",
+        people: Array(3).fill(null).map(() => ({ isLoading: true }))
+      }]);
 
-        // Convert the chunk to text
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
+      // Search for people in each region and profession combination
+      for (const region of allRegions) {
+        for (const profession of allProfessions) {
+          const personResponse = await fetch('/api/person-search', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: originalQuery,
+              location: region,
+              profession: profession,
+              searchType: 'marketing',
+              numResults: 5
+            }),
+          });
 
-        // Process each line
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
-            if (data.progress) {
-              setSearchProgress(data.progress);
-            }
-            if (data.gatherings) {
-              // Add the search results to the conversation
-              if (data.gatherings.length > 0) {
-                setConversation(prev => [...prev, {
-                  role: 'assistant',
-                  content: `I found ${data.gatherings.length} relevant gatherings:`,
-                  gatherings: data.gatherings
-                }]);
+          if (!personResponse.ok) {
+            console.error(`Failed to search for people in ${region} for ${profession}`);
+            continue;
+          }
 
-                // After finding gatherings, search for relevant people
-                for (const profession of selectedProfessions.professions) {
-                  const personResponse = await fetch('/api/person-search', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      query: originalQuery,
-                      location: selectedRegions.baseRegion,
-                      profession: profession,
-                      searchType: 'help',
-                      numResults: 3
-                    }),
-                  });
-
-                  if (personResponse.ok) {
-                    const personData = await personResponse.json();
-                    if (personData.people && personData.people.length > 0) {
-                      setConversation(prev => [...prev, {
-                        role: 'assistant',
-                        content: `Here are some ${profession}s who might be able to help:`,
-                        people: personData.people
-                      }]);
-                    }
+          const personData = await personResponse.json();
+          if (personData.people && personData.people.length > 0) {
+            allPeople.push(...personData.people);
+            
+            // Update the conversation with new people as they come in
+            setConversation(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === 'assistant' && lastMessage.people) {
+                return [
+                  ...prev.slice(0, -1),
+                  {
+                    ...lastMessage,
+                    content: `Found ${allPeople.length} relevant people so far...`,
+                    people: [
+                      ...allPeople,
+                      ...Array(Math.max(0, 3 - allPeople.length)).fill(null).map(() => ({ isLoading: true }))
+                    ]
                   }
-                }
-              } else {
-                setConversation(prev => [...prev, {
-                  role: 'assistant',
-                  content: "I couldn't find any relevant gatherings matching your criteria. Would you like to try different regions or industries?"
-                }]);
+                ];
               }
-            }
-          } catch (e) {
-            console.error('Error parsing chunk:', e);
+              return prev;
+            });
           }
         }
       }
+
+      // Sort people by relevance score and remove duplicates
+      const uniquePeople = Array.from(
+        new Map(allPeople.map(p => [p.name, p])).values()
+      ).sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      // Update the final message with all unique people
+      setConversation(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage.role === 'assistant' && lastMessage.people) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMessage,
+              content: `I found ${uniquePeople.length} relevant people who might be interested:`,
+              people: uniquePeople
+            }
+          ];
+        }
+        return prev;
+      });
+
     } catch (error) {
-      console.error('Error searching for gatherings:', error);
+      console.error('Error in search:', error);
       setConversation(prev => [...prev, {
         role: 'assistant',
-        content: "I encountered an error while searching for gatherings. Please try again."
+        content: "I encountered an error while searching. Please try again."
       }]);
     } finally {
       setIsSearching(false);
-      setSearchProgress(null);
     }
   };
 
@@ -875,6 +917,13 @@ export default function Dashboard() {
                         ))}
                       </div>
                     )}
+                    {message.people && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {message.people.map((person: any, idx: number) => (
+                          <PersonCard key={idx} person={person} isLoading={person.isLoading} />
+                        ))}
+                      </div>
+                    )}
                     {message.regions && !isFinalized && (
                       <RegionCards 
                         regions={selectedRegions} 
@@ -888,13 +937,6 @@ export default function Dashboard() {
                         onProfessionRemove={handleProfessionRemove}
                         onAddProfession={handleAddProfession}
                       />
-                    )}
-                    {message.people && (
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {message.people.map((person: any, idx: number) => (
-                          <PersonCard key={idx} person={person} />
-                        ))}
-                      </div>
                     )}
                   </div>
                 </div>
@@ -966,26 +1008,6 @@ export default function Dashboard() {
         onAdd={handleProfessionAdd}
         type={professionModalState.type}
       />
-
-      {/* Search Progress Indicator */}
-      {isSearching && (
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-lg p-4 max-w-md w-full">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {searchProgress?.status || 'Searching...'}
-            </span>
-            <span className="text-sm text-gray-500">
-              {searchProgress?.progress || 0}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${searchProgress?.progress || 0}%` }}
-            />
-          </div>
-        </div>
-      )}
     </main>
   );
 } 

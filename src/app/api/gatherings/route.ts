@@ -13,7 +13,7 @@ const gatheringSchema = z.object({
   url: z.string().optional(),
   type: z.enum(['conference', 'expo', 'fair', 'meetup', 'other']),
   contact_information: z.string().optional(),
-  relevanceScore: z.number().min(0).max(1).optional(),
+  relevanceScore: z.number().optional(),
 });
 
 // Schema for gathering search results

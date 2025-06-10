@@ -40,14 +40,6 @@ const searchConfigSchema = z.object({
   baseQuery: z.string()
 });
 
-// Schema for search progress
-const searchProgressSchema = z.object({
-  currentRegion: z.string(),
-  currentIndustry: z.string(),
-  status: z.string(),
-  progress: z.number().min(0).max(100)
-});
-
 // Function to generate search queries
 async function generateSearchQueries(baseQuery: string, numQueries: number) {
   const { object: expansion } = await generateObject({
@@ -82,37 +74,13 @@ export async function POST(request: Request) {
     const validatedConfig = searchConfigSchema.parse(config);
 
     const allGatherings: (Gathering & { region: string; industry: string })[] = [];
-    const totalSearches = validatedConfig.regions.length * validatedConfig.industries.length;
-    let completedSearches = 0;
-
-    // Create a TransformStream for streaming the response
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
-    const encoder = new TextEncoder();
-
-    // Function to send progress updates
-    const sendProgress = async (progress: any) => {
-      await writer.write(encoder.encode(JSON.stringify(progress) + '\n'));
-    };
 
     // Search through each region and industry combination
     for (const region of validatedConfig.regions) {
       for (const industry of validatedConfig.industries) {
-        // Update progress
-        console.log(region, industry)
-        const progress = {
-          currentRegion: region,
-          currentIndustry: industry,
-          status: `Searching ${region} for ${industry}...`,
-          progress: Math.round((completedSearches / totalSearches) * 100)
-        };
-        
-        // Send progress update
-        await sendProgress({ progress });
-
         // Search for gatherings using the imported function
         const searchResults = await searchGatherings(region, industry);
-        
+
         // Analyze relevance for each gathering
         const relevantGatherings = await Promise.all(
           searchResults.gatherings.map(async (gathering: Gathering) => {
@@ -132,7 +100,6 @@ export async function POST(request: Request) {
         );
 
         allGatherings.push(...filteredGatherings);
-        completedSearches++;
       }
     }
 
@@ -146,17 +113,8 @@ export async function POST(request: Request) {
       new Map(allGatherings.map(g => [`${g.name}-${g.location}`, g])).values()
     );
 
-    // Send final results
-    await sendProgress({ gatherings: uniqueGatherings });
-    await writer.close();
-
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    });
+    // Return the gatherings directly
+    return NextResponse.json({ gatherings: uniqueGatherings });
   } catch (error) {
     console.error('Error in gathering search:', error);
     return NextResponse.json(
