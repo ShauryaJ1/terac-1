@@ -54,6 +54,7 @@ async function analyzeQuery(query: string, userProfile: string) {
     - reasoning: brief explanation of your analysis`
   });
   console.log(analysis)
+  console.log(userProfile)
   // If location or profession is missing, try to extract it from the user profile
   if (!analysis.hasLocation || !analysis.hasProfession) {
     const { object: profileAnalysis } = await generateObject({

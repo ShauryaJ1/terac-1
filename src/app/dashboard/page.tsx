@@ -934,6 +934,9 @@ const SearchSelection = ({
   );
 };
 
+// Add PastSearches import at the top with other imports
+import PastSearches from '@/components/PastSearches';
+
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -1000,6 +1003,9 @@ export default function Dashboard() {
   const [activeResultTab, setActiveResultTab] = useState<'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses'>('gatherings');
   const [showSearchSelection, setShowSearchSelection] = useState(false);
   const [selectedSearches, setSelectedSearches] = useState<string[]>([]);
+
+  // Add new state for handling past searches
+  const [isLoadingPastSearch, setIsLoadingPastSearch] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1106,10 +1112,12 @@ export default function Dashboard() {
       const choices = savedChoices ? JSON.parse(savedChoices) : {};
       const originalQuery = choices.originalQuery || '';
 
+      // Initialize search data object
+      const searchData: any = {};
+
       // Perform selected searches
       if (searches.includes('gatherings')) {
         setSearchProgress(prev => ({ ...prev, gatherings: 0 }));
-        // First, search for gatherings
         const gatheringResponse = await fetch('/api/gathering-search', {
           method: 'POST',
           headers: {
@@ -1129,10 +1137,9 @@ export default function Dashboard() {
         }
 
         const gatheringData = await gatheringResponse.json();
-        // console.log(gatheringData)
         setSearchProgress(prev => ({ ...prev, gatherings: 1 }));
+        searchData.gatherings = gatheringData.gatherings;
         
-        // Add the gathering search results to the conversation
         if (gatheringData.gatherings && gatheringData.gatherings.length > 0) {
           setConversation(prev => [...prev, {
             role: 'assistant',
@@ -1227,6 +1234,7 @@ export default function Dashboard() {
         setConversation(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === 'assistant' && lastMessage.people) {
+            searchData.people = uniquePeople;
             return [
               ...prev.slice(0, -1),
               {
@@ -1239,7 +1247,7 @@ export default function Dashboard() {
           return prev;
         });
       }
-
+      
       if (searches.includes('platforms')) {
         setSearchProgress(prev => ({ ...prev, platforms: 0 }));
         // Now, search for platforms
@@ -1263,8 +1271,8 @@ export default function Dashboard() {
 
         const platformData = await platformResponse.json();
         setSearchProgress(prev => ({ ...prev, platforms: 1 }));
+        searchData.platforms = platformData.platforms;
         
-        // Add the platform search results to the conversation
         if (platformData.platforms && platformData.platforms.length > 0) {
           setConversation(prev => [...prev, {
             role: 'assistant',
@@ -1329,6 +1337,7 @@ export default function Dashboard() {
             setConversation(prev => {
               const lastMessage = prev[prev.length - 1];
               if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
+                
                 return [
                   ...prev.slice(0, -1),
                   {
@@ -1357,6 +1366,7 @@ export default function Dashboard() {
         setConversation(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === 'assistant' && lastMessage.exchanges) {
+            searchData.exchanges = uniqueExchanges;
             return [
               ...prev.slice(0, -1),
               {
@@ -1369,7 +1379,7 @@ export default function Dashboard() {
           return prev;
         });
       }
-
+      
       if (searches.includes('licenses')) {
         setSearchProgress(prev => ({ ...prev, licenses: 0 }));
         // Search for licenses
@@ -1445,11 +1455,12 @@ export default function Dashboard() {
         const uniqueLicenses = Array.from(
           new Map(allLicenses.map(l => [l.name, l])).values()
         ).sort((a, b) => b.relevanceScore - a.relevanceScore);
-
+        searchData.licenses = uniqueLicenses;
         // Update the final message with all unique licenses
         setConversation(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === 'assistant' && lastMessage.licenses) {
+            
             return [
               ...prev.slice(0, -1),
               {
@@ -1460,6 +1471,27 @@ export default function Dashboard() {
             ];
           }
           return prev;
+        });
+      }
+      console.log(searchData);
+      // After all searches are complete, save the search
+      const saveResponse = await fetch('/api/searches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: originalQuery,
+          searchData
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json();
+        console.error('Failed to save search:', {
+          status: saveResponse.status,
+          error: errorData,
+          searchData
         });
       }
 
@@ -1600,12 +1632,55 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Add function to handle past search selection
+  const handlePastSearchSelect = (search: any) => {
+    setIsLoadingPastSearch(true);
+    try {
+      // Add the search query to the conversation
+      setConversation(prev => [...prev, {
+        role: 'user',
+        content: search.query
+      }]);
+
+      // Add the search results to the conversation
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: `Here are the results from your previous search:`,
+        gatherings: search.search_data.gatherings,
+        people: search.search_data.people,
+        platforms: search.search_data.platforms,
+        exchanges: search.search_data.exchanges,
+        licenses: search.search_data.licenses
+      }]);
+
+      // Set the active tab to the first available result type
+      if (search.search_data.gatherings?.length) setActiveResultTab('gatherings');
+      else if (search.search_data.people?.length) setActiveResultTab('people');
+      else if (search.search_data.platforms?.length) setActiveResultTab('platforms');
+      else if (search.search_data.exchanges?.length) setActiveResultTab('exchanges');
+      else if (search.search_data.licenses?.length) setActiveResultTab('licenses');
+    } finally {
+      setIsLoadingPastSearch(false);
+    }
+  };
+
   if (!userProfile) {
     return null;
   }
 
   return (
     <main className="flex-1 flex flex-col h-screen bg-gray-50">
+      {/* Add PastSearches component in the header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-2 flex justify-between items-center">
+          <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+          <div className="flex items-center space-x-4">
+            <PastSearches onSelectSearch={handlePastSearchSelect} />
+            {/* Add your sign out button here */}
+          </div>
+        </div>
+      </div>
+
       {conversation.length === 0 ? (
         // Centered input when no messages
         <div className="min-h-screen flex items-center justify-center p-4">
