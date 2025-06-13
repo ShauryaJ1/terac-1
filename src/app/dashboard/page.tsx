@@ -1129,6 +1129,7 @@ export default function Dashboard() {
         }
 
         const gatheringData = await gatheringResponse.json();
+        // console.log(gatheringData)
         setSearchProgress(prev => ({ ...prev, gatherings: 1 }));
         
         // Add the gathering search results to the conversation
