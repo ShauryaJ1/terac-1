@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import PastSearches from '@/components/PastSearches';
+import { createClient } from '@/lib/supabase/client';
 
 // Separate InputForm component
 const InputForm = ({ 
@@ -934,9 +936,6 @@ const SearchSelection = ({
   );
 };
 
-// Add PastSearches import at the top with other imports
-import PastSearches from '@/components/PastSearches';
-
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -1016,13 +1015,26 @@ export default function Dashboard() {
   }, [conversation]);
 
   useEffect(() => {
-    // Check if user profile exists
-    const profile = localStorage.getItem('userProfile');
-    if (!profile) {
-      router.push('/');
-      return;
-    }
-    setUserProfile(profile);
+    // Fetch user profile from Supabase
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        router.push('/');
+        return;
+      }
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('profile_text')
+        .eq('id', session.user.id)
+        .single();
+      if (profileError || !profile) {
+        router.push('/');
+        return;
+      }
+      setUserProfile(profile.profile_text || '');
+    };
+    fetchProfile();
   }, [router]);
 
   // Function to store all user choices in localStorage
