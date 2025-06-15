@@ -699,7 +699,12 @@ const ResultTabs = ({
   hasPeople,
   hasPlatforms,
   hasExchanges,
-  hasLicenses
+  hasLicenses,
+  gatherings,
+  people,
+  platforms,
+  exchanges,
+  licenses
 }: { 
   activeTab: 'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses';
   onTabChange: (tab: 'gatherings' | 'people' | 'platforms' | 'exchanges' | 'licenses') => void;
@@ -708,6 +713,11 @@ const ResultTabs = ({
   hasPlatforms: boolean;
   hasExchanges: boolean;
   hasLicenses: boolean;
+  gatherings?: any[];
+  people?: any[];
+  platforms?: any[];
+  exchanges?: any[];
+  licenses?: any[];
 }) => {
   return (
     <div className="flex space-x-2 mb-4">
@@ -720,7 +730,7 @@ const ResultTabs = ({
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Gatherings
+          Gatherings {gatherings && <span className="ml-1 text-xs opacity-75">({gatherings.length})</span>}
         </button>
       )}
       {hasPeople && (
@@ -732,7 +742,7 @@ const ResultTabs = ({
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          People
+          People {people && <span className="ml-1 text-xs opacity-75">({people.length})</span>}
         </button>
       )}
       {hasPlatforms && (
@@ -744,7 +754,7 @@ const ResultTabs = ({
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Platforms
+          Platforms {platforms && <span className="ml-1 text-xs opacity-75">({platforms.length})</span>}
         </button>
       )}
       {hasExchanges && (
@@ -756,7 +766,7 @@ const ResultTabs = ({
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Information Exchanges
+          Information Exchanges {exchanges && <span className="ml-1 text-xs opacity-75">({exchanges.length})</span>}
         </button>
       )}
       {hasLicenses && (
@@ -768,7 +778,7 @@ const ResultTabs = ({
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Licenses & Registrations
+          Licenses & Registrations {licenses && <span className="ml-1 text-xs opacity-75">({licenses.length})</span>}
         </button>
       )}
     </div>
@@ -1020,9 +1030,9 @@ export default function Dashboard() {
       const supabase = createClient();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
-        router.push('/');
-        return;
-      }
+      router.push('/');
+      return;
+    }
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('profile_text')
@@ -1259,7 +1269,7 @@ export default function Dashboard() {
           return prev;
         });
       }
-      
+
       if (searches.includes('platforms')) {
         setSearchProgress(prev => ({ ...prev, platforms: 0 }));
         // Now, search for platforms
@@ -1391,7 +1401,7 @@ export default function Dashboard() {
           return prev;
         });
       }
-      
+
       if (searches.includes('licenses')) {
         setSearchProgress(prev => ({ ...prev, licenses: 0 }));
         // Search for licenses
@@ -1734,6 +1744,11 @@ export default function Dashboard() {
                         hasPlatforms={!!message.platforms}
                         hasExchanges={!!message.exchanges}
                         hasLicenses={!!message.licenses}
+                        gatherings={message.gatherings}
+                        people={message.people}
+                        platforms={message.platforms}
+                        exchanges={message.exchanges}
+                        licenses={message.licenses}
                       />
                     )}
 

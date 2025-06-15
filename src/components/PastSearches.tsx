@@ -54,6 +54,21 @@ export default function PastSearches({ onSelectSearch }: PastSearchesProps) {
     });
   };
 
+  const getSearchCounts = (search: Search) => {
+    const counts = {
+      gatherings: search.search_data.gatherings?.length || 0,
+      people: search.search_data.people?.length || 0,
+      platforms: search.search_data.platforms?.length || 0,
+      exchanges: search.search_data.exchanges?.length || 0,
+      licenses: search.search_data.licenses?.length || 0
+    };
+
+    return Object.entries(counts)
+      .filter(([_, count]) => count > 0)
+      .map(([type, count]) => `${type}: ${count}`)
+      .join(', ');
+  };
+
   if (isLoading) {
     return (
       <div className="relative">
@@ -119,6 +134,9 @@ export default function PastSearches({ onSelectSearch }: PastSearchesProps) {
                   </div>
                   <div className="text-sm text-gray-500">
                     {formatDate(search.created_at)}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {getSearchCounts(search)}
                   </div>
                   <div className={`absolute left-0 right-0 ${index === searches.length - 1 ? 'bottom-full mb-2' : 'top-full mt-2'} hidden group-hover:block z-50`}>
                     <div className="bg-gray-900 text-white text-sm rounded-lg py-2 px-3 max-w-full break-words shadow-lg">

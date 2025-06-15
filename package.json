@@ -17,6 +17,7 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.0",
     "ai": "^4.3.16",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "exa-js": "^1.8.8",
     "next": "15.3.3",
