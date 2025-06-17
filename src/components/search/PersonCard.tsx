@@ -5,7 +5,7 @@ interface Person {
   title?: string;
   company?: string;
   description?: string;
-  url?: string;
+  source?: string;
   relevanceScore?: number;
   isLoading?: boolean;
 }
@@ -17,8 +17,8 @@ interface PersonCardProps {
 
 export default function PersonCard({ person, isLoading }: PersonCardProps) {
   const handleClick = () => {
-    if (person.url) {
-      window.open(person.url, '_blank');
+    if (person.source) {
+      window.open(person.source, '_blank');
     }
   };
 
@@ -62,6 +62,14 @@ export default function PersonCard({ person, isLoading }: PersonCardProps) {
         <p className="text-gray-600 text-sm mt-3">
           {person.description}
         </p>
+      )}
+      {person.source && (
+        <div className="flex items-center text-blue-600 text-sm group">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          {person.source}
+        </div>
       )}
     </div>
   );

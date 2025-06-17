@@ -19,9 +19,14 @@ export default function SearchDetails() {
   useEffect(() => {
     const fetchSearch = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          throw userError;
+        }
+        
         if (!user) {
-          router.push('/login');
+          router.push('/auth/signin');
           return;
         }
 
@@ -88,7 +93,7 @@ export default function SearchDetails() {
   const hasLicenses = search.search_data?.licenses?.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -172,7 +177,7 @@ export default function SearchDetails() {
         </div>
 
         {/* Results */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeTab === 'gatherings' && search.search_data.gatherings?.map((gathering: any, index: number) => (
             <GatheringCard key={index} gathering={gathering} />
           ))}

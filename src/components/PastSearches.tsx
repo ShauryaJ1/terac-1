@@ -103,15 +103,15 @@ export default function PastSearches({ onSelectSearch }: PastSearchesProps) {
   }
 
   return (
-    <div className="relative">
-      <button
+    <div className="relative text-blue-600">
+      {/* <button
         className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>Past Searches</span>
         <ChevronDownIcon className="w-4 h-4" />
-      </button>
-      
+      </button> */}
+      <a href="/dashboard/searches">Past Searches</a>
       {isOpen && (
         <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           {searches.length === 0 ? (

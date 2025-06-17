@@ -3,7 +3,7 @@
 interface InfoExchange {
   name: string;
   description: string;
-  url?: string;
+  source?: string;
   relevanceScore?: number;
   type?: string;
   memberCount?: number;
@@ -15,11 +15,11 @@ interface InfoExchangeCardProps {
 
 export default function InfoExchangeCard({ exchange }: InfoExchangeCardProps) {
   const handleClick = () => {
-    if (exchange.url) {
-      window.open(exchange.url, '_blank');
+    if (exchange.source) {
+      window.open(exchange.source, '_blank');
     }
   };
-
+  // console.log(exchange);
   return (
     <div 
       className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
@@ -53,6 +53,14 @@ export default function InfoExchangeCard({ exchange }: InfoExchangeCardProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           {exchange.memberCount.toLocaleString()} members
+        </div>
+      )}
+      {exchange.source && (
+        <div className="flex items-center text-blue-600 text-sm group">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          {exchange.source}
         </div>
       )}
     </div>

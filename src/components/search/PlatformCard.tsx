@@ -3,7 +3,7 @@
 interface Platform {
   name: string;
   description: string;
-  url?: string;
+  source?: string;
   relevanceScore?: number;
   features?: string[];
 }
@@ -14,11 +14,11 @@ interface PlatformCardProps {
 
 export default function PlatformCard({ platform }: PlatformCardProps) {
   const handleClick = () => {
-    if (platform.url) {
-      window.open(platform.url, '_blank');
+    if (platform.source) {
+      window.open(platform.source, '_blank');
     }
   };
-
+  // console.log(platform);
   return (
     <div 
       className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
@@ -38,7 +38,10 @@ export default function PlatformCard({ platform }: PlatformCardProps) {
       <p className="text-gray-600 text-sm mb-3">
         {platform.description}
       </p>
-      
+      {/* <p className="text-gray-600 text-sm mb-3">
+        {platform.source}
+      </p>
+       */}
       {platform.features && platform.features.length > 0 && (
         <div className="mt-3">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Key Features:</h4>
@@ -49,6 +52,15 @@ export default function PlatformCard({ platform }: PlatformCardProps) {
           </ul>
         </div>
       )}
+      {platform.source && (
+          <div className="flex items-center text-blue-600 text-sm group">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            {platform.source}
+          </div>
+        )}
+      
     </div>
   );
 } 
