@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await supabase.auth.getUser();
 
     if (!session) {
       console.error('No session found');
