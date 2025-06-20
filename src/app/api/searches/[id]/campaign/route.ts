@@ -109,10 +109,25 @@ export async function POST(
 
       // Process each person in the search data sequentially to avoid page conflicts
       const campaignData = [];
-      for (const person of search.search_data.people || []) {
+      for (let i = 0; i < (search.search_data.people || []).length; i++) {
+        const person = search.search_data.people[i];
         const campaignEntry: any = {
           originalPerson: person,
         };
+
+        // Update campaign status to show current person being processed
+        await supabase
+          .from('searches')
+          .update({ 
+            campaign_progress: {
+              currentPerson: i + 1,
+              totalPeople: search.search_data.people.length,
+              currentPersonName: person.name || 'Unknown',
+              status: 'navigating'
+            }
+          })
+          .eq('id', id)
+          .eq('user_id', userId);
 
         // If person has a source URL, visit it and extract data
         if (person.source) {
@@ -120,10 +135,45 @@ export async function POST(
             // Navigate to the URL with a timeout and better error handling
             try {
               await page.goto(person.source, { timeout: 60000 });
+              
+              // Update status to extracting summary
+              await supabase
+                .from('searches')
+                .update({ 
+                  campaign_progress: {
+                    currentPerson: i + 1,
+                    totalPeople: search.search_data.people.length,
+                    currentPersonName: person.name || 'Unknown',
+                    status: 'extracting_summary'
+                  }
+                })
+                .eq('id', id)
+                .eq('user_id', userId);
+                
             } catch (navigationError) {
               console.error(`Failed to navigate to ${person.source}:`, navigationError);
               // Continue with the next person if navigation fails
               campaignData.push(campaignEntry);
+              // Update database with current person's data even if navigation failed
+              const { error: updateError } = await supabase
+                .from('searches')
+                .update({ 
+                  campaign: campaignData,
+                  campaign_progress: {
+                    currentPerson: i + 1,
+                    totalPeople: search.search_data.people.length,
+                    currentPersonName: person.name || 'Unknown',
+                    status: 'failed'
+                  }
+                })
+                .eq('id', id)
+                .eq('user_id', userId);
+
+              if (updateError) {
+                console.error('Error updating search with campaign data for person:', person.name || 'Unknown', updateError);
+              } else {
+                console.log(`Successfully updated campaign data for person: ${person.name || 'Unknown'}`);
+              }
               continue;
             }
 
@@ -137,9 +187,23 @@ export async function POST(
             });
             campaignEntry.summary = summary;
 
+            // Update status to extracting contacts
+            await supabase
+              .from('searches')
+              .update({ 
+                campaign_progress: {
+                  currentPerson: i + 1,
+                  totalPeople: search.search_data.people.length,
+                  currentPersonName: person.name || 'Unknown',
+                  status: 'extracting_contacts'
+                }
+              })
+              .eq('id', id)
+              .eq('user_id', userId);
+
             // Extract contact information
             const contactInfo = await page.extract({
-              instruction: "Extract all contact information entries from the page, including phone numbers, emails, and addresses. Return them as an array of contact entries.",
+              instruction: "Extract all contact information entries from the page, including phone numbers, emails, and addresses. Return them as an array of contact entries. AN EMAIL WILL PROBABLZY BE ON THE PAGE SO LOOK CAREFULLY FOR IT.",
               schema: z.object({
                 contacts: z.array(z.object({
                   name: z.string().nullable().optional(),
@@ -159,25 +223,41 @@ export async function POST(
         }
 
         campaignData.push(campaignEntry);
+        
+        // Update database with current person's data
+        const { error: updateError } = await supabase
+          .from('searches')
+          .update({ 
+            campaign: campaignData,
+            campaign_progress: {
+              currentPerson: i + 1,
+              totalPeople: search.search_data.people.length,
+              currentPersonName: person.name || 'Unknown',
+              status: 'completed'
+            }
+          })
+          .eq('id', id)
+          .eq('user_id', userId);
+
+        if (updateError) {
+          console.error('Error updating search with campaign data for person:', person.name || 'Unknown', updateError);
+          // Continue processing other people even if this update fails
+        } else {
+          console.log(`Successfully updated campaign data for person: ${person.name || 'Unknown'}`);
+        }
       }
 
-      // Update the search with campaign data
-      const { error: updateError } = await supabase
+      // Clear campaign status when complete
+      await supabase
         .from('searches')
-        .update({ campaign: campaignData })
+        .update({ 
+          campaign_progress: null
+        })
         .eq('id', id)
         .eq('user_id', userId);
 
-      if (updateError) {
-        console.error('Error updating search with campaign data:', updateError);
-        return NextResponse.json(
-          { error: 'Failed to update search with campaign data' },
-          { status: 500 }
-        );
-      }
-
       return NextResponse.json({ 
-        message: 'Campaign started successfully',
+        message: 'Campaign completed successfully',
         campaignData 
       });
 
